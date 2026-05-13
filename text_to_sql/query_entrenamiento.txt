@@ -1,0 +1,124 @@
+-- TIPO: VISTA DE DIMENSIÓN (Dimension Table) [cite: 1]
+-- VISTA: dim_local [cite: 1]
+-- DESCRIPCIÓN: Un local puede ser una matriz de un negocio, punto de venta, o bodega. [cite: 1]
+CREATE VIEW dim_local AS (
+    idlocal INT PRIMARY KEY, -- identificador del local [cite: 2]
+    empresa VARCHAR(255), -- nombre de la empresa a la que pertenece [cite: 2]
+    nombre VARCHAR(255) -- nombre de este local [cite: 2]
+);
+---
+-- TIPO: VISTA DE DIMENSIÓN (Dimension Table) [cite: 3]
+-- VISTA: dim_personal [cite: 3]
+CREATE VIEW dim_personal AS (
+    idpersonal INT PRIMARY KEY, -- identificador del personal [cite: 3]
+    empresa VARCHAR(255), -- nombre de la empresa a la que pertenece [cite: 3]
+    nombre_completo VARCHAR(255) -- nombre completo del personal [cite: 3]
+);
+---
+-- TIPO: VISTA DE DIMENSIÓN (Dimension Table) [cite: 4]
+-- VISTA: dim_articulo [cite: 4]
+-- DESCRIPCIÓN: Un artículo es un bien o servicio que puede ser comprado, vendido o producido. [cite: 4]
+CREATE VIEW dim_articulo AS (
+    idarticulo INT PRIMARY KEY, -- identificador del artículo [cite: 5]
+    empresa VARCHAR(255), -- nombre de la empresa a la que pertenece [cite: 5]
+    nombre VARCHAR(255), -- nombre del artículo [cite: 5]
+    tipo VARCHAR(100), -- indica el tipo del artículo, las opciones son muy variadas como 'ferretería', 'medicina', 'materia prima', etc. [cite: 5]
+    clasificacion VARCHAR(100), -- indica si el artículo es 'Mercadería', 'Activo Fijo' o 'Servicio'. Servicio puede ser de compra o de venta. [cite: 5, 6]
+    precioventa NUMERIC(15,2), -- precio de venta del artículo [cite: 6]
+    preciocompra NUMERIC(15,2), -- precio de compra del artículo [cite: 6]
+    precioincluyeiva BOOLEAN, -- campo booleano que indica si el artículo está activo [cite: 6]
+    impuesto_nombre VARCHAR(100), -- Nombre del impuesto que tiene este artículo [cite: 7]
+    impuesto_porcentaje NUMERIC(5,2), -- Indica el porcentaje del impuesto de este artículo, si es cero entonces no tiene impuestos. [cite: 7]
+    activo BOOLEAN -- Indica si el producto está activo, true si está activo y false si es inactivo [cite: 8]
+);
+---
+-- TIPO: VISTA DE DIMENSIÓN (Dimension Table) [cite: 9]
+-- VISTA: dim_proveedor [cite: 9]
+CREATE VIEW dim_proveedor AS (
+    idproveedor INT PRIMARY KEY, -- identificador del proveedor [cite: 9]
+    empresa VARCHAR(255), -- nombre de la empresa a la que pertenece [cite: 9]
+    nombre_completo VARCHAR(255), -- nombre completo del proveedor [cite: 9]
+    activo BOOLEAN -- campo booleano que indica que es true si el proveedor está activo [cite: 9]
+);
+---
+-- TIPO: VISTA DE DIMENSIÓN (Dimension Table) [cite: 10]
+-- VISTA: dim_cliente [cite: 10]
+CREATE VIEW dim_cliente AS (
+    idcliente INT PRIMARY KEY, -- identificador del cliente [cite: 10]
+    empresa VARCHAR(255), -- nombre de la empresa a la que pertenece [cite: 10]
+    nombre_completo VARCHAR(255), -- nombre completo del cliente [cite: 10]
+    activo BOOLEAN -- campo booleano que indica que es true si el cliente está activo [cite: 10]
+);
+---
+-- TIPO: VISTA DE HECHOS (Fact Table) [cite: 11]
+-- VISTA: fact_porcobrar [cite: 11]
+-- GRANULARIDAD: Una fila representa un crédito a un cliente en una empresa específica. Que puede estar pendiente de pago o cancelado [cite: 11, 12]
+-- MÉTRICAS PRINCIPALES: valor_inicial, valor_pagado, valor_pendiente. [cite: 12]
+CREATE VIEW fact_porcobrar AS (
+    idporcobrar INT PRIMARY KEY, -- identificador del documento por cobrar [cite: 13]
+    empresa VARCHAR(255), -- nombre de la empresa a la que pertenece [cite: 13]
+    idcliente INT REFERENCES dim_cliente(idcliente), -- Llave a la dimensión cliente [cite: 13]
+    estado VARCHAR(50), -- Indica el estado del documento, puede ser 'pendiente', 'cancelado' (que significa anulado) o 'vencido' [cite: 13]
+    numero VARCHAR(50), -- número del documento por cobrar [cite: 13]
+    fecha DATE, -- fecha en que se generó o registró el documento por cobrar [cite: 13]
+    fechainicio DATE, -- fecha en la que se deben iniciar los pagos [cite: 13]
+    fechafin DATE, -- fecha en la que se deben terminar los pagos [cite: 13]
+    valor_inicial NUMERIC(15,2), -- Valor o monto inicial de la deuda [cite: 13]
+    valor_pagado NUMERIC(15,2), -- Valor o monto que el cliente ya ha pagado [cite: 13, 14]
+    valor_pendiente NUMERIC(15,2) -- Valor o monto que está pendiente de pago [cite: 14]
+);
+---
+-- TIPO: VISTA DE HECHOS (Fact Table) [cite: 15]
+-- VISTA: fact_porpagar [cite: 15]
+-- GRANULARIDAD: Una fila representa un crédito o deuda a un proveedor en una empresa específica. Que puede estar pendiente de pago o cancelado [cite: 15, 16]
+-- MÉTRICAS PRINCIPALES: valor_inicial, valor_pagado, valor_pendiente. [cite: 16]
+CREATE VIEW fact_porpagar AS (
+    idporpagar INT PRIMARY KEY, [cite: 17]
+    empresa VARCHAR(255), -- nombre de la empresa a la que pertenece [cite: 17]
+    idproveedor INT REFERENCES dim_proveedor(idproveedor), -- Llave a la dimensión proveedor [cite: 17]
+    estado VARCHAR(50), -- Indica el estado del documento, puede ser pendiente, cancelado (que significa anulado) o vencido [cite: 17]
+    numero VARCHAR(50), -- número del documento por cobrar [cite: 17]
+    fecha DATE, -- fecha en que se generó o registró el documento por cobrar [cite: 17]
+    fechainicio DATE, -- fecha en la que se deben iniciar los pagos [cite: 17]
+    fechafin DATE, -- fecha en la que se deben terminar los pagos [cite: 17]
+    valor_inicial NUMERIC(15,2), -- Valor o monto inicial de la deuda [cite: 17]
+    valor_pagado NUMERIC(15,2), -- Valor o monto que yas e ha pagado al proveedor [cite: 17]
+    valor_pendiente NUMERIC(15,2) -- Valor o monto que está pendiente de pago al proveedor [cite: 17, 18]
+);
+---
+-- TIPO: VISTA DE HECHOS (Fact Table) [cite: 19]
+-- VISTA: fact_factura [cite: 19]
+-- GRANULARIDAD: Una fila representa un venta a un cliente o compra a un proveedor de varios artículos en una empresa y local específicos. [cite: 19]
+-- MÉTRICAS PRINCIPALES: subtotal_impuestos, subtotal_sin_impuestos, impuestos y total. [cite: 20]
+CREATE VIEW fact_factura AS (
+    idfactura INT PRIMARY KEY, -- identificador de la factura [cite: 20]
+    idlocal INT REFERENCES dim_local(idlocal), -- Llave a la dimensión local [cite: 20]
+    idproveedor INT REFERENCES dim_proveedor(idproveedor), -- Llave a la dimensión proveedor, distinto a null solo si es una compra [cite: 20]
+    idcliente INT REFERENCES dim_cliente(idcliente), -- Llave a la dimensión, distinto a null solo si es una venta [cite: 20]
+    idpersonal INT REFERENCES dim_personal(idpersonal), -- Llave a la dimensión personal, es el identificador de la persona que registró la factura en el sistema [cite: 20]
+    idpersonalvendedor INT REFERENCES dim_personal(idpersonal), -- Llave a la dimensión personal, es el identificador del vendedor que suele recibir comisión. [cite: 20]
+    empresa VARCHAR(255), -- nombre de la empresa a la que pertenece [cite: 21]
+    estado VARCHAR(50), -- Estado de la factura, los valores pueden ser 'Cancelado', 'Anulada' y 'Pendiente' [cite: 21]
+    tipo_factura VARCHAR(100), -- El tipo de la factura, los valores pueden ser: 'Factura de Venta', 'Nota de Venta', 'Factura de Compra', 'Ingreso Nota de Venta', 'Liquidación de Compras', 'Proforma', 'Comprobante', 'Importación', 'Ingreso Proforma' [cite: 21]
+    tipo VARCHAR(50), -- Indica si es de compra o de venta, los valores son 'Compra' y 'Venta' [cite: 21]
+    forma_pago VARCHAR(50), -- Es la forma de pago, puede ser 'Contado', 'Crédito' [cite: 21]
+    fecha TIMESTAMP, -- fecha en la que se generó o registró la factura [cite: 21]
+    numero VARCHAR(50), -- es el número de la factura [cite: 21, 22]
+    subtotal_impuestos NUMERIC(15,2), -- Es el monto o sumatoria de todos los artículos que en esta factura no tienen impuesto [cite: 22]
+    subtotal_sin_impuestos NUMERIC(15,2), -- Es el monto o sumatoria de todos los artículos que en esta factura sí tienen impuesto [cite: 22]
+    impuestos NUMERIC(15,2), -- es el valor o monto de los impuestos generados en esta factura [cite: 22]
+    total NUMERIC(15,2) -- Es el valor total de la factura [cite: 22]
+);
+---
+-- TIPO: VISTA DE HECHOS (Fact Table) [cite: 24]
+-- VISTA: fact_facturadetalle [cite: 24]
+-- GRANULARIDAD: Una fila representa un artículo de una factura en una empresa y local específicos. Una fila de fact_factura tiene una o varias filas de fact_facturadetalle. [cite: 24, 25]
+-- MÉTRICAS PRINCIPALES: cantidad, precio_unitario, precio_total. [cite: 25]
+CREATE VIEW fact_facturadetalle AS (
+    idfactura INT REFERENCES fact_factura(idfactura), -- Llave al hecho factura [cite: 26]
+    idarticulo INT REFERENCES dim_articulo(idarticulo), -- Llave a la dimensión artículo [cite: 26]
+    cantidad INT, -- La cantidad en unidades que se ha pedido del artículo [cite: 26]
+    precio_unitario NUMERIC(15,2), -- El precio unitario del producto sin impuestos en esta factura. [cite: 26]
+    precio_total NUMERIC(15,2), -- Indica el precio total del artículo sin impuestos, es la cantidad por el precio unitario [cite: 27]
+    impuestos VARCHAR(50) -- Indica si el artículo tiene impuestos, los valores pueden ser: null, 'iva' [cite: 27]
+);

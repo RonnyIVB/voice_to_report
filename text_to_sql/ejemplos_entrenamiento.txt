@@ -1,0 +1,60 @@
+DESCRIPCIÓN: Dame una lista de los 10 productos más vendidos en el año 2025 junto con el monto de ventas.
+QUERY:
+SELECT
+    da.nombre,
+    SUM(ffd.precio_total) AS monto_total_vendido
+FROM
+    fact_facturadetalle AS ffd
+    da.nombre,
+    SUM(ffd.precio_total) AS monto_total_vendido
+FROM
+    fact_facturadetalle AS ffd
+JOIN
+    fact_factura AS ff ON ffd.idfactura = ff.idfactura
+JOIN
+    dim_articulo AS da ON ffd.idarticulo = da.idarticulo
+WHERE
+    EXTRACT(YEAR FROM ff.fecha) = 2025
+GROUP BY
+---
+DESCRIPCIÓN: Dame una lista de los vendedores que tengan más ventas en el año 2024 junto con el monto de sus ventas
+QUERY:
+SELECT 
+    p.nombre, 
+    SUM(f.total) AS monto_total_ventas
+FROM fact_factura f
+JOIN dim_personal p ON f.idpersonalvendedor = p.idpersonal
+WHERE f.tipo = 'Venta'
+  AND EXTRACT(YEAR FROM f.fecha) = 2024
+GROUP BY p.nombre
+ORDER BY monto_total_ventas DESC;
+---
+DESCRIPCIÓN: Dame un resumen de las ventas totales en cada mes del año 2024
+QUERY:
+SELECT 
+    EXTRACT(MONTH FROM fecha) AS mes,
+    SUM(total) AS ventas_totales
+FROM fact_factura
+WHERE tipo = 'Venta'
+  AND EXTRACT(YEAR FROM fecha) = 2024
+GROUP BY EXTRACT(MONTH FROM fecha)
+ORDER BY mes;
+---
+DESCRIPCIÓN: Dame el una lista de los productos que son del tipo Ferretería que más se vendieron en el año 2024
+QUERY:
+SELECT
+    a.nombre,
+    SUM(fd.cantidad) AS total_vendido
+FROM
+    fact_facturadetalle fd
+JOIN
+    dim_articulo a ON fd.idarticulo = a.idarticulo
+JOIN
+    fact_factura f ON fd.idfactura = f.idfactura
+WHERE
+    LOWER(a.tipo) LIKE '%ferretería%'
+    AND EXTRACT(YEAR FROM f.fecha) = 2024
+GROUP BY
+    a.nombre
+ORDER BY
+    total_vendido DESC;

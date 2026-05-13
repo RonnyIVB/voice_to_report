@@ -1,0 +1,6 @@
+google-genai
+chromadb
+pinecone
+python-dotenv
+openai-whisper
+ollama
