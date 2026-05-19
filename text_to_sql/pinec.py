@@ -78,19 +78,22 @@ def transformar_texto_a_sql(consulta_usuario):
     )
     
     contexto_recuperado = "\n\n".join([match['metadata']['texto_sql'] for match in resultados['matches']])
-    
+
+    # Cargar instrucción del sistema
+    ruta_instruccion = os.path.join("text_to_sql", "__pycache__", "instruccion_sistema.txt")
+    try:
+        with open(ruta_instruccion, "r", encoding="utf-8") as archivo:
+            instruccion_sistema = archivo.read()
+    except FileNotFoundError:
+        print(f"❌ Error: El archivo de instrucción no fue encontrado en {ruta_instruccion}")
+        sys.exit(1)
+
     # C. Generar la consulta SQL con Gemini (nuevo SDK)
     prompt = f"""
     Actúa como un experto en PostgreSQL. Genera una consulta SQL utilizando este esquema OLAP:
-    
     {contexto_recuperado}
-    
     Solicitud del usuario: {consulta_usuario}
-    
-    Instrucciones:
-    - Responde únicamente con el código SQL.
-    - No uses formato markdown (```sql).
-    - Si la consulta requiere unir tablas, usa las llaves foráneas indicadas en los comentarios.
+    Instrucciones: {instruccion_sistema}
     """
     
     respuesta = client.models.generate_content(

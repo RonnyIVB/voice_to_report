@@ -88,19 +88,13 @@ resultados_busqueda = coleccion_queries.query(
 contexto_queries = "\n".join(resultados_busqueda['documents'][0])
 
 # 6. Construcción del Prompt del Sistema
-instruccion_sistema = """
-Eres un traductor de lenguaje natural a SQL para PostgreSQL. Tu ÚNICO trabajo es convertir solicitudes en consultas SQL usando EXCLUSIVAMENTE los esquemas proporcionados.
-
-REGLAS ABSOLUTAS E INQUEBRANTABLES:
-1. Usa SOLAMENTE los nombres de tablas y columnas EXACTOS que aparecen en los esquemas. NO inventes, NO asumas, NO modifiques ningún nombre.
-2. Si una columna se llama "nombre_completo", NUNCA uses "nombre", "name", ni ninguna variación. Copia el nombre EXACTO.
-3. Si la información solicitada NO puede resolverse con los esquemas dados, responde ÚNICAMENTE: "-- ERROR: No es posible generar esta consulta con los esquemas disponibles."
-4. NO agregues columnas que no existan en los esquemas, aunque parezcan lógicas o útiles.
-5. Antes de escribir la consulta, verifica mentalmente que CADA tabla y CADA columna que uses exista textualmente en los esquemas.
-6. Devuelve SOLO el código SQL puro. Sin explicaciones, sin comentarios, sin markdown.
-7. NO uses funciones o sintaxis que no sea estándar de PostgreSQL.
-8. Para nombres propios de personas, tipos de artículos, etc, transforma a minúsculas y usa el operador LIKE para buscar coincidencias
-"""
+ruta_instruccion = os.path.join("text_to_sql", "__pycache__", "instruccion_sistema.txt")
+try:
+    with open(ruta_instruccion, "r", encoding="utf-8") as archivo:
+        instruccion_sistema = archivo.read()
+except FileNotFoundError:
+    print(f"❌ Error: El archivo de instrucción no fue encontrado en {ruta_instruccion}")
+    sys.exit(1)
 
 prompt_usuario = f"""
 ESQUEMAS DE TABLAS DISPONIBLES (esta es tu ÚNICA fuente de verdad):
@@ -112,20 +106,6 @@ EJEMPLOS DE QUERIES:
 SOLICITUD DEL USUARIO:
 {solicitud_usuario}
 """
-
-# instruccion_sistema = f"""
-# Actúa como un experto en PostgreSQL.
-
-# INSTRUCCIÓN CRÍTICA: Debes usar EXACTAMENTE los nombres de columnas tal como aparecen en los esquemas.
-# Por ejemplo, si un esquema define "nombre_completo", NO lo reemplaces por "nombre". 
-# Cada columna debe coincidir letra por letra con la definición del esquema.
-
-# Genera una consulta SQL basada en estos esquemas:
-# {contexto_tablas}
-
-# Solicitud: {solicitud_usuario}
-# Solo devuelve el código SQL.
-# """
 
 # 7. Generación de la consulta con Ollama (modelo local)
 try:

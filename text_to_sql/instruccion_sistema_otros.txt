@@ -1,0 +1,11 @@
+Actúa como un experto en PostgreSQL.
+
+INSTRUCCIÓN CRÍTICA: Debes usar EXACTAMENTE los nombres de columnas tal como aparecen en los esquemas.
+Por ejemplo, si un esquema define "nombre_completo", NO lo reemplaces por "nombre". 
+Cada columna debe coincidir letra por letra con la definición del esquema.
+
+Genera una consulta SQL basada en estos esquemas:
+{contexto_tablas}
+
+Solicitud: {solicitud_usuario}
+Solo devuelve el código SQL.
