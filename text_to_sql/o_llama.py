@@ -64,12 +64,12 @@ except Exception as e:
     sys.exit(1)
 
 # 4. Solicitud de entrada
-solicitud_usuario = "Dame una lista de los 10 artículos más vendidos en el año 2023, indícame el nombre del artículo y el monto de ventas."
+#solicitud_usuario = "Dame una lista de los 10 artículos más vendidos en el año 2023, indícame el nombre del artículo y el monto de ventas."
 #solicitud_usuario = "Dame un resumen de las ventas totales en cada mes del año 2024"
 #solicitud_usuario = "Dame una lista de los vendedores que tengan más ventas en el año 2024 junto con el monto de sus ventas"
 #solicitud_usuario = "Dame una lista de los nombres de los vendedores que tengan más ventas en el año 2024 junto con el monto de sus ventas"
 #solicitud_usuario = "Dame el una lista de los productos que son del tipo Ferretería que más se vendieron en el año 2024"
-#solicitud_usuario = "Muéstrame el monto mensual de compras que ha realizado Doménica en cada mes del año 2025"
+solicitud_usuario = "Muéstrame el monto mensual de compras que ha realizado Doménica en cada mes del año 2025"
 #solicitud_usuario = "El total de compras en cada mes del año 2025 que ha realizado Doménica"
 
 # 5. Recuperación (Retrieval) del contexto pertinente
@@ -79,7 +79,7 @@ resultados_busqueda = coleccion_esquemas.query(
     n_results = n_results_esquemas # Traer las tablas más relevantes
 )
 
-contexto_tablas = "\n".join(resultados_busqueda['documents'][0])
+contexto_tablas = "\n\n".join(resultados_busqueda['documents'][0])
 
 n_results_queries = min(10, coleccion_queries.count())
 resultados_busqueda = coleccion_queries.query(
@@ -87,10 +87,10 @@ resultados_busqueda = coleccion_queries.query(
     n_results=n_results_queries  # Traer las queries más relevantes (máx. disponibles)
 )
 
-contexto_queries = "\n".join(resultados_busqueda['documents'][0])
+contexto_queries = "\n\n".join(resultados_busqueda['documents'][0])
 
 # 6. Construcción del Prompt del Sistema
-ruta_instruccion = os.path.join("text_to_sql", "__pycache__", "instruccion_sistema.txt")
+ruta_instruccion = os.path.join("text_to_sql", "instruccion_sistema.txt")
 try:
     with open(ruta_instruccion, "r", encoding="utf-8") as archivo:
         instruccion_sistema = archivo.read()
@@ -98,12 +98,24 @@ except FileNotFoundError:
     print(f"Error: El archivo de instrucción no fue encontrado en {ruta_instruccion}")
     sys.exit(1)
 
-prompt_usuario = f"""
-ESQUEMAS DE TABLAS DISPONIBLES (esta es tu ÚNICA fuente de verdad):
-{contexto_tablas}
+# Prompt mejorado: inyectar los esquemas COMPLETOS directamente en el system prompt
+# para que el modelo los tenga como fuente de verdad absoluta.
+prompt_sistema_completo = f"""{instruccion_sistema}
 
-EJEMPLOS DE QUERIES:
+A continuación se muestran los ÚNICOS esquemas de tablas que existen.
+NO uses ninguna tabla ni columna que no aparezca aquí:
+
+{contexto_tablas}
+"""
+
+prompt_usuario = f"""
+A continuación hay ejemplos de consultas SQL correctas que usan los esquemas anteriores.
+Úsalos como referencia de estilo y estructura:
+
 {contexto_queries}
+
+Ahora genera la consulta SQL para la siguiente solicitud.
+Recuerda: usa SOLO las tablas y columnas de los esquemas. No inventes nada.
 
 SOLICITUD DEL USUARIO:
 {solicitud_usuario}
@@ -111,21 +123,22 @@ SOLICITUD DEL USUARIO:
 
 # 7. Generación de la consulta con Ollama (modelo local)
 try:
-    print("Generando consulta SQL de forma local...")
+    
     respuesta_generada = ollama.generate(
         #model='gemma2', # Asegúrate de haber descargado este modelo con 'ollama run gemma2'
         model='gemma4:e4b',
         prompt=prompt_usuario,
-        system=instruccion_sistema,
+        system=prompt_sistema_completo,
         options={
             "temperature": 0.0,  # Sin aleatoriedad (determinístico)
             "top_k": 1,
-            "top_p": 1.0
+            "top_p": 1.0,
+            "num_ctx": 8192  # Ventana de contexto más amplia para que entren todos los esquemas
         }
     )
 
     print(respuesta_generada['response'])
-
+    
 except ConnectionError:
     print("Error de conexión. Asegúrate de que Ollama esté ejecutándose en tu sistema.")
 except Exception as e:

@@ -10,8 +10,10 @@ JOIN
 JOIN
     dim_articulo AS da ON ffd.idarticulo = da.idarticulo
 WHERE
-    EXTRACT(YEAR FROM ff.fecha) = 2025
+    ff.tipo = 'Venta'
+    AND EXTRACT(YEAR FROM ff.fecha) = 2025
 GROUP BY da.nombre
+ORDER BY monto_total_vendido DESC
 LIMIT 10
 ---
 DESCRIPCIÓN: Dame una lista de los vendedores que tengan más ventas en el año 2021 junto con el monto de sus ventas
