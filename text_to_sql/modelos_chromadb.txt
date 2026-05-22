@@ -1,0 +1,7 @@
+'gemini-3.5-flash', 'Disponible'
+'gemini-3-flash-preview', 'Disponible'
+'gemini-3-flash-preview', 'Disponible'
+'gemini-3.5-flash', 'Disponible'
+'gemini-3.1-flash-lite-preview', 'Disponible'
+'gemini-2.5-pro', 'Requiere facturación'
+'gemini-2.5-flash', 'Presenta errores 503 por alta demanda'

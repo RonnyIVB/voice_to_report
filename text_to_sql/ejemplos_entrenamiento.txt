@@ -5,28 +5,25 @@ SELECT
     SUM(ffd.precio_total) AS monto_total_vendido
 FROM
     fact_facturadetalle AS ffd
-    da.nombre,
-    SUM(ffd.precio_total) AS monto_total_vendido
-FROM
-    fact_facturadetalle AS ffd
 JOIN
     fact_factura AS ff ON ffd.idfactura = ff.idfactura
 JOIN
     dim_articulo AS da ON ffd.idarticulo = da.idarticulo
 WHERE
     EXTRACT(YEAR FROM ff.fecha) = 2025
-GROUP BY
+GROUP BY da.nombre
+LIMIT 10
 ---
-DESCRIPCIÓN: Dame una lista de los vendedores que tengan más ventas en el año 2024 junto con el monto de sus ventas
+DESCRIPCIÓN: Dame una lista de los vendedores que tengan más ventas en el año 2021 junto con el monto de sus ventas
 QUERY:
 SELECT 
-    p.nombre, 
+    p.nombre_completo , 
     SUM(f.total) AS monto_total_ventas
 FROM fact_factura f
 JOIN dim_personal p ON f.idpersonalvendedor = p.idpersonal
 WHERE f.tipo = 'Venta'
-  AND EXTRACT(YEAR FROM f.fecha) = 2024
-GROUP BY p.nombre
+    AND EXTRACT(YEAR FROM f.fecha) = 2021
+GROUP BY p.nombre_completo 
 ORDER BY monto_total_ventas DESC;
 ---
 DESCRIPCIÓN: Dame un resumen de las ventas totales en cada mes del año 2024
@@ -58,3 +55,15 @@ GROUP BY
     a.nombre
 ORDER BY
     total_vendido DESC;
+---
+DESCRIPCIÓN: El total de compras en cada mes del año 2021 que ha realizado Doménica
+QUERY:
+select
+	EXTRACT(MONTH FROM fecha) AS mes,
+	sum(ff.total) as monto_mensual
+from fact_factura as ff
+join dim_proveedor pr on ff.idproveedor = pr.idproveedor 
+where EXTRACT(YEAR FROM ff.fecha) = 2021
+    and ff.tipo = 'Compra'
+    and lower(pr.nombre_completo) like lower('%doménica%')
+group by EXTRACT(MONTH FROM fecha);

@@ -10,7 +10,7 @@ try:
     coleccion_esquemas = cliente_db.create_collection(name="esquemas_sistema_contable")
     coleccion_queries = cliente_db.create_collection(name="queries_entrenamiento")
 except Exception as e:
-    print(f"❌ Error al inicializar ChromaDB: {e}")
+    print(f"Error al inicializar ChromaDB: {e}")
     sys.exit(1)
 
 # 2. Lectura de metadatos desde archivo externo
@@ -26,10 +26,10 @@ def cargar_metadatos_desde_archivo(nombre_archivo):
     return bloques_tablas
 
 # Ejecución de la carga
-lista_de_esquemas = cargar_metadatos_desde_archivo("query_entrenamiento.txt")
+lista_de_esquemas = cargar_metadatos_desde_archivo("text_to_sql/query_entrenamiento.txt")
 
 if not lista_de_esquemas:
-    print("❌ No se encontraron esquemas para indexar. Verifica el archivo de entrenamiento.")
+    print("Error. No se encontraron esquemas para indexar. Verifica el archivo de entrenamiento.")
     sys.exit(1)
 
 # 3. Indexación en ChromaDB
@@ -41,14 +41,14 @@ try:
         ids=ids_tablas
     )
 except Exception as e:
-    print(f"❌ Error al indexar los esquemas de las tablas en ChromaDB: {e}")
+    print(f"Error al indexar los esquemas de las tablas en ChromaDB: {e}")
     sys.exit(1)
 
 # Ejecución de la carga
-lista_de_queries = cargar_metadatos_desde_archivo("ejemplos_entrenamiento.txt")
+lista_de_queries = cargar_metadatos_desde_archivo("text_to_sql/ejemplos_entrenamiento.txt")
 
 if not lista_de_queries:
-    print("❌ No se encontraron queries para indexar. Verifica el archivo de entrenamiento.")
+    print("Error. No se encontraron queries para indexar. Verifica el archivo de entrenamiento.")
     sys.exit(1)
 
 # 3. Indexación en ChromaDB
@@ -60,7 +60,7 @@ try:
         ids=ids_queries
     )
 except Exception as e:
-    print(f"❌ Error al indexar las queries en ChromaDB: {e}")
+    print(f"Error al indexar las queries en ChromaDB: {e}")
     sys.exit(1)
 
 # 4. Solicitud de entrada
@@ -73,16 +73,18 @@ solicitud_usuario = "Dame una lista de los 10 artículos más vendidos en el añ
 #solicitud_usuario = "El total de compras en cada mes del año 2025 que ha realizado Doménica"
 
 # 5. Recuperación (Retrieval) del contexto pertinente
+n_results_esquemas = min(10, coleccion_esquemas.count())
 resultados_busqueda = coleccion_esquemas.query(
     query_texts=[solicitud_usuario],
-    n_results = 5 # Traer las 2 tablas más relevantes
+    n_results = n_results_esquemas # Traer las tablas más relevantes
 )
 
 contexto_tablas = "\n".join(resultados_busqueda['documents'][0])
 
+n_results_queries = min(10, coleccion_queries.count())
 resultados_busqueda = coleccion_queries.query(
     query_texts=[solicitud_usuario],
-    n_results = 10 # Traer las 10 queries más relevantes
+    n_results=n_results_queries  # Traer las queries más relevantes (máx. disponibles)
 )
 
 contexto_queries = "\n".join(resultados_busqueda['documents'][0])
@@ -93,7 +95,7 @@ try:
     with open(ruta_instruccion, "r", encoding="utf-8") as archivo:
         instruccion_sistema = archivo.read()
 except FileNotFoundError:
-    print(f"❌ Error: El archivo de instrucción no fue encontrado en {ruta_instruccion}")
+    print(f"Error: El archivo de instrucción no fue encontrado en {ruta_instruccion}")
     sys.exit(1)
 
 prompt_usuario = f"""
@@ -125,6 +127,6 @@ try:
     print(respuesta_generada['response'])
 
 except ConnectionError:
-    print("❌ Error de conexión. Asegúrate de que Ollama esté ejecutándose en tu sistema.")
+    print("Error de conexión. Asegúrate de que Ollama esté ejecutándose en tu sistema.")
 except Exception as e:
-    print(f"❌ Error inesperado al generar la consulta localmente: {e}")
+    print(f"Error inesperado al generar la consulta localmente: {e}")

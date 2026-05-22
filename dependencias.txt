@@ -5,11 +5,11 @@ Transcripcion
 	pip install -U openai-whisper
 	choco install ffmpeg (admin)
 Text to SQL
-	Chromadb:
+	ChromaDB:
 		pip install chromadb
 		pip install -q -U google-generativeai
 
-	Pinecode:
+	Pinecone:
 		pip install grpcio-tools==1.71.0
 		pip install pinecone
 		pip install google-genai
@@ -28,7 +28,3 @@ Text to SQL
 
 		# Instalar librería
 		pip install ollama
-			
-
-Entendido, acabo de instalar la librería ollama. Planifiquemos los pasos siguientes para utilizar el modelo Gemma 4 4B (E4B - Edge) en esta aplicación.
-
