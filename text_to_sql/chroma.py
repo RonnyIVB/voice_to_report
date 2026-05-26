@@ -172,17 +172,17 @@ for model_name in modelos_disponibles:
         break  # Si funciona uno, ya no probar con los otros modelos
     except genai_errors.ClientError as e:
         if '429' in str(e):
-            modelos_fallidos += f"{model_name}: Error (429): Cuota de la API excedida o requiere facturación.\n"
+            modelos_fallidos += f"Error (429) del modelo {model_name}: Cuota de la API excedida o requiere facturación.\n"
         elif '403' in str(e):
-            modelos_fallidos += f"{model_name}: Error (403): Clave de API inválida o sin permisos.\n"
+            modelos_fallidos += f"Error (403) del modelo {model_name}: Clave de API inválida o sin permisos.\n"
         else:
-            modelos_fallidos += f"{model_name}: Error del cliente (400): {e}\n"
+            modelos_fallidos += f"Error del cliente (400) del modelo {model_name}: {e}\n"
     except genai_errors.ServerError as e:
-        modelos_fallidos += f"{model_name}: Error del servidor (500): {e}\n"
+        modelos_fallidos += f"Error del servidor (500) del modelo {model_name}: {e}\n"
     except ConnectionError:
-        modelos_fallidos += f"{model_name}: Error de conexión: {e}\n"
+        modelos_fallidos += f"Error de conexión del modelo {model_name}: {e}\n"
     except Exception as e:
-        modelos_fallidos += f"{model_name}: Error inesperado: {e}\n"
+        modelos_fallidos += f"Error inesperado del modelo {model_name}: {e}\n"
 
 # Mostrar el resultado final de la consulta generada
 if respuesta_generada:
