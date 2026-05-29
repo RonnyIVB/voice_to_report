@@ -28,3 +28,9 @@ Text to SQL
 
 		# Instalar librería
 		pip install ollama
+API:
+	pip install "fastapi[standard]"
+	pip install uvicorn
+
+Documentación:
+	http://127.0.0.1:8000/docs
